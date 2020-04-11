@@ -40,36 +40,60 @@ public class SocketClient {
 
     public void send(File file) throws IOException {
         DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+
         if (file.isDirectory()) {
             fileList = new ArrayList<>();
             getAllChild(file);
+            outputStream.writeInt(fileList.size());
+            String rootPath = file.getParent() + "/";
+
+            for (File singleFile : fileList) {
+                String path = "";
+                String parent = singleFile.getParent();
+                if (parent.length() >= rootPath.length()) {
+                    path = parent.replace(rootPath, "");
+                }
+                sendSingleFile(singleFile, path, outputStream);
+            }
         } else {
             outputStream.writeInt(1);
-            outputStream.writeInt(file.getName().getBytes().length);
-            System.out.println("文件名长度: " + file.getName().length());
-
-            outputStream.write(file.getName().getBytes());
-            System.out.println("文件名: " + file.getName());
-
-            outputStream.writeLong(file.length());
-            System.out.println("文件长度: " + file.length());
-
-            InputStream inputStream = new FileInputStream(file);
-            byte[] data = new byte[BUFFER_SIZE];
-            int length;
-            int i = 0;
-            while ((length = inputStream.read(data)) != -1) {
-                outputStream.write(data, 0, length);
-                i++;
-                if (i % 10 == 0) {
-                    outputStream.flush();
-                }
-            }
-            outputStream.flush();
-            System.out.println(file.getPath());
-            inputStream.close();
+            sendSingleFile(file, "", outputStream);
         }
         socket.shutdownOutput();
+    }
+
+    private void sendSingleFile(File file, String path, DataOutputStream outputStream) throws IOException {
+
+        outputStream.writeInt(path.getBytes().length);
+        System.out.println("目录长度: " + path.getBytes().length);
+        if (path.length() > 0) {
+            outputStream.write(path.getBytes());
+            System.out.println("目录名: " + path);
+        }
+
+        outputStream.writeInt(file.getName().getBytes().length);
+        System.out.println("文件名长度: " + file.getName().length());
+
+        outputStream.write(file.getName().getBytes());
+        System.out.println("文件名: " + file.getName());
+
+        outputStream.writeLong(file.length());
+        System.out.println("文件长度: " + file.length());
+
+        InputStream inputStream = new FileInputStream(file);
+        byte[] data = new byte[BUFFER_SIZE];
+        int length;
+        int i = 0;
+        while ((length = inputStream.read(data)) != -1) {
+            outputStream.write(data, 0, length);
+            outputStream.flush();
+            i++;
+            if (i % 10 == 0) {
+                outputStream.flush();
+            }
+        }
+        outputStream.flush();
+        inputStream.close();
     }
 
     private void getAllChild(File file) {
@@ -85,7 +109,6 @@ public class SocketClient {
         } else {
             if (!file.isHidden()) {
                 fileList.add(file);
-                System.out.println(file.getParent());
             }
         }
 

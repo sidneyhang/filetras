@@ -39,7 +39,7 @@ public class App {
             try {
                 client.send(fileChooser.getFile());
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         });
         panel.add(sendBtn);

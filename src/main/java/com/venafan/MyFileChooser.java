@@ -26,6 +26,7 @@ public class MyFileChooser {
 
     public void showFileOpenDialog(Component parent, JTextArea textArea) {
         int result = fileChooser.showOpenDialog(parent);
+        fileChooser.cancelSelection();
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             textArea.append("打开文件：" + file + "\n\n");
