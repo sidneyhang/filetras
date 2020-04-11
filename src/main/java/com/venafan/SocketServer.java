@@ -1,7 +1,5 @@
 package com.venafan;
 
-import com.alibaba.fastjson.JSON;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,6 +16,7 @@ import java.net.Socket;
 public class SocketServer {
 
     private static final int PORT = 9190;
+    private static final int BUFFER_SIZE = 4096;
     private ServerSocket serverSocket;
 
     public SocketServer() throws IOException {
@@ -29,20 +28,44 @@ public class SocketServer {
     }
 
     public static void receive(Socket socket) throws IOException {
-        InputStream inputStream;
+        DataInputStream inputStream;
         OutputStream outputStream;
 
-        inputStream = socket.getInputStream();
-        byte[] data = inputStream.readAllBytes();
+        inputStream = new DataInputStream(socket.getInputStream());
 
-        FileData fileData = JSON.parseObject(data, FileData.class);
+        int fileCount = inputStream.readInt();
+        if (fileCount > 1) {
 
-        String filename = fileData.getFileName();
-        File file = new File(System.getProperty("user.home") + filename);
-        outputStream = new FileOutputStream(file);
-        outputStream.write(fileData.getData());
+        } else {
+            int filenameLength = inputStream.readInt();
+            print("文件名长度: " + filenameLength);
+            byte[] filenameBytes = new byte[filenameLength];
+            inputStream.read(filenameBytes);
+            print("文件名: " + new String(filenameBytes));
 
+            long fileLength = inputStream.readLong();
+            print("文件长度: " + fileLength);
+
+            byte[] fileBytes = new byte[BUFFER_SIZE];
+
+            String filename = new String(filenameBytes);
+            File file = new File(System.getProperty("user.home") + "/" + filename);
+            outputStream = new FileOutputStream(file);
+
+            int length;
+            while ((length = inputStream.read(fileBytes)) != -1) {
+
+                outputStream.write(fileBytes, 0, length);
+            }
+
+            print("接收完毕");
+            outputStream.close();
+        }
         inputStream.close();
-        outputStream.close();
+        socket.close();
+    }
+
+    private static void print(String str) {
+        System.out.println(str);
     }
 }
