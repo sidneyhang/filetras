@@ -28,15 +28,30 @@ public class SocketServer {
     }
 
     public static void receive(Socket socket) throws IOException {
-        DataInputStream inputStream;
-        OutputStream outputStream;
+        DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+//        String rootPath = System.getProperty("user.home") + "/";
+        String rootPath = "D:\\Temp\\";
 
-        inputStream = new DataInputStream(socket.getInputStream());
+        String currentPath = rootPath;
 
         int fileCount = inputStream.readInt();
-        if (fileCount > 1) {
+        print("文件数: " + fileCount);
 
-        } else {
+        for (int i = 0; i < fileCount; i++) {
+
+            int dirLength = inputStream.readInt();
+            print("目录名长度: " + dirLength);
+            if (dirLength > 0) {
+                byte[] dirBytes = new byte[dirLength];
+                inputStream.read(dirBytes);
+                String dirPath = new String(dirBytes);
+                print("目录路径: " + dirPath);
+                File dir = new File(rootPath + dirPath);
+                if (!dir.exists() && !dir.mkdirs()) {
+                    throw new IOException("创建目录失败：" + dir.getPath());
+                }
+                currentPath = dir.getPath() + "/";
+            }
             int filenameLength = inputStream.readInt();
             print("文件名长度: " + filenameLength);
             byte[] filenameBytes = new byte[filenameLength];
@@ -46,19 +61,30 @@ public class SocketServer {
             long fileLength = inputStream.readLong();
             print("文件长度: " + fileLength);
 
-            byte[] fileBytes = new byte[BUFFER_SIZE];
+            byte[] fileBytes;
+            if (fileLength < BUFFER_SIZE) {
+                fileBytes = new byte[(int)fileLength];
+            } else {
+                fileBytes = new byte[BUFFER_SIZE];
+            }
 
             String filename = new String(filenameBytes);
-            File file = new File(System.getProperty("user.home") + "/" + filename);
-            outputStream = new FileOutputStream(file);
+
+            File file = new File(currentPath + filename);
+            OutputStream outputStream = new FileOutputStream(file);
 
             int length;
-            while ((length = inputStream.read(fileBytes)) != -1) {
-
+            long remaining = fileLength;
+            while (remaining > 0 && (length = inputStream.read(fileBytes)) != -1) {
                 outputStream.write(fileBytes, 0, length);
+                remaining -= length;
+                if (remaining < BUFFER_SIZE && remaining > 0) {
+                    fileBytes = new byte[(int) remaining];
+                }
             }
 
             print("接收完毕");
+
             outputStream.close();
         }
         inputStream.close();
