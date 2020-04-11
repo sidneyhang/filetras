@@ -1,6 +1,7 @@
 package com.venafan;
 
 import javax.swing.*;
+import java.io.IOException;
 
 /**
  * Hello world!
@@ -12,7 +13,7 @@ public class App {
         thread.start();
 
         JFrame jf = new JFrame("测试窗口");
-        jf.setSize(500,500);
+        jf.setSize(500, 500);
         jf.setLocationRelativeTo(null);
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -33,7 +34,13 @@ public class App {
 
         JButton sendBtn = new JButton("发送");
         sendBtn.addActionListener((event) -> {
-            fileChooser.getFileData();
+            SocketClient client = new SocketClient();
+            client.connection();
+            try {
+                client.send(fileChooser.getFile());
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         });
         panel.add(sendBtn);
 

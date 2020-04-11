@@ -2,8 +2,7 @@ package com.venafan;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.util.Arrays;
+import java.io.File;
 
 /**
  * <p>
@@ -17,7 +16,7 @@ import java.util.Arrays;
 public class MyFileChooser {
     private JFileChooser fileChooser;
 
-    private FileData fileData;
+    private File file;
 
     public MyFileChooser() {
         fileChooser = new JFileChooser();
@@ -30,19 +29,11 @@ public class MyFileChooser {
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             textArea.append("打开文件：" + file + "\n\n");
-            FileData data = new FileData();
-            data.setFileName(file.getName());
-            try {
-                InputStream inputStream = new FileInputStream(file);
-                data.setData(inputStream.readAllBytes());
-                fileData = data;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            this.file = file;
         }
     }
 
-    public FileData getFileData() {
-        return fileData;
+    public File getFile() {
+        return file;
     }
 }
