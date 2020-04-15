@@ -17,7 +17,7 @@ public class SocketServer {
 
     private static final int PORT = 9190;
     private static final int BUFFER_SIZE = 4096;
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
 
     public SocketServer() throws IOException {
         serverSocket = new ServerSocket(PORT);

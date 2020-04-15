@@ -12,12 +12,18 @@ public class App {
         Thread thread = new Thread(serverListen);
         thread.start();
 
+        Thread udpServer = new Thread(new UDPListen());
+        Thread udpClient = new Thread(new BroadcastIPTask());
+        udpServer.start();
+        udpClient.start();
+
         JFrame jf = new JFrame("测试窗口");
         jf.setSize(500, 500);
         jf.setLocationRelativeTo(null);
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel();
+        SpringLayout layout = new SpringLayout();
+        JPanel panel = new JPanel(layout);
 
         final JTextArea textArea = new JTextArea(10, 30);
         textArea.setLineWrap(true);
@@ -43,6 +49,9 @@ public class App {
             }
         });
         panel.add(sendBtn);
+
+        SpringLayout.Constraints openBtnCons = layout.getConstraints(openBtn);
+
 
 
         jf.setContentPane(panel);
