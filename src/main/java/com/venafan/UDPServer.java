@@ -17,6 +17,8 @@ public class UDPServer {
 
     private static final int PORT = 9191;
     private volatile static DatagramSocket socket;
+    private static String ip;
+    private static final Object LOCK = new Object();
 
     public UDPServer() {
 
@@ -24,9 +26,10 @@ public class UDPServer {
 
     public void init() {
         try {
-            if (socket != null) {
-                synchronized (socket) {
-                    if (socket != null) {
+            if (socket == null) {
+                synchronized (LOCK) {
+                    if (socket == null) {
+                        System.out.println("init");
                         socket = new DatagramSocket(PORT);
                     }
                 }
@@ -42,12 +45,14 @@ public class UDPServer {
         socket.receive(packet);
         byte[] receive = packet.getData();
         System.out.println(new String(receive));
-        socket.close();
     }
 
     public void send() throws IOException {
-        String ip = getIPAddress();
-        byte[] ipAddress = ip.getBytes();
+        String localIp = ip;
+        if (ip == null || "".equals(ip)) {
+            localIp = getIPAddress();
+        }
+        byte[] ipAddress = localIp.getBytes();
         DatagramPacket packet = new DatagramPacket(ipAddress, ipAddress.length,
                 InetAddress.getByName("192.168.31.255"), PORT);
         socket.send(packet);
