@@ -13,8 +13,8 @@ public class App {
         thread.start();
 
         Thread udpServer = new Thread(new UDPListen());
-        Thread udpClient = new Thread(new BroadcastIPTask());
         udpServer.start();
+        Thread udpClient = new Thread(new BroadcastIPTask());
         udpClient.start();
 
         JFrame jf = new JFrame("测试窗口");

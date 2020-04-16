@@ -17,19 +17,16 @@ public class BroadcastIPTask implements Runnable {
 
     @Override
     public void run() {
-        try {
-            UDPClient udpClient = new UDPClient();
-            ScheduledExecutorService executorService = Executors.newScheduledThreadPool(5);
-            executorService.scheduleAtFixedRate(() -> {
-                try {
-                    udpClient.send();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, 1, 1, TimeUnit.SECONDS);
+        UDPServer udpClient = new UDPServer();
+        udpClient.init();
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(5);
+        executorService.scheduleAtFixedRate(() -> {
+            try {
+                udpClient.send();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, 1, 1, TimeUnit.SECONDS);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

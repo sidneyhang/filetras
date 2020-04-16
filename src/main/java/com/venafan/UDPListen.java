@@ -19,18 +19,16 @@ public class UDPListen implements Runnable {
 
     @Override
     public void run() {
-        try {
-            UDPServer server = new UDPServer();
-            ScheduledExecutorService executorService = Executors.newScheduledThreadPool(5);
-            executorService.scheduleAtFixedRate(() -> {
-                try {
-                    server.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, 1, 1, TimeUnit.SECONDS);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        UDPServer server = new UDPServer();
+        server.init();
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(5);
+        executorService.scheduleAtFixedRate(() -> {
+            try {
+                server.accept();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, 1, 1, TimeUnit.SECONDS);
+
     }
 }

@@ -1,9 +1,8 @@
 package com.venafan;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.net.*;
+import java.util.Enumeration;
 
 /**
  * <p>
@@ -17,9 +16,24 @@ import java.net.SocketException;
 public class UDPServer {
 
     private static final int PORT = 9191;
-    private final DatagramSocket socket;
-    public UDPServer() throws SocketException {
-        socket = new DatagramSocket(PORT);
+    private volatile static DatagramSocket socket;
+
+    public UDPServer() {
+
+    }
+
+    public void init() {
+        try {
+            if (socket != null) {
+                synchronized (socket) {
+                    if (socket != null) {
+                        socket = new DatagramSocket(PORT);
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     public void accept() throws IOException {
@@ -29,5 +43,44 @@ public class UDPServer {
         byte[] receive = packet.getData();
         System.out.println(new String(receive));
         socket.close();
+    }
+
+    public void send() throws IOException {
+        String ip = getIPAddress();
+        byte[] ipAddress = ip.getBytes();
+        DatagramPacket packet = new DatagramPacket(ipAddress, ipAddress.length,
+                InetAddress.getByName("192.168.31.255"), PORT);
+        socket.send(packet);
+    }
+
+    public void close() {
+        if (!socket.isClosed()) {
+            socket.close();
+        }
+    }
+
+    private String getIPAddress() {
+        try {
+            String ip = "";
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (networkInterface.isLoopback() || networkInterface.isVirtual() || !networkInterface.isUp()) {
+                    continue;
+                }
+                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    if (inetAddress instanceof Inet4Address) {
+                        ip = inetAddress.getHostAddress();
+                    }
+                }
+            }
+            System.out.println("IP: " + ip);
+            return ip;
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
