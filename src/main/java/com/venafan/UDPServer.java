@@ -3,6 +3,9 @@ package com.venafan;
 import java.io.IOException;
 import java.net.*;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * <p>
@@ -19,9 +22,9 @@ public class UDPServer {
     private volatile static DatagramSocket socket;
     private static String ip;
     private static final Object LOCK = new Object();
+    private static Set<String> remoteIps = new HashSet<>();
 
     public UDPServer() {
-
     }
 
     public void init() {
@@ -44,7 +47,15 @@ public class UDPServer {
         DatagramPacket packet = new DatagramPacket(data, data.length);
         socket.receive(packet);
         byte[] receive = packet.getData();
-        System.out.println(new String(receive));
+        String remoteIp = new String(receive);
+        String localIp = ip;
+        if (ip == null || "".equals(ip)) {
+            localIp = getIPAddress();
+        }
+        if (!remoteIp.equals(localIp)) {
+            System.out.println(remoteIp);
+            remoteIps.add(remoteIp);
+        }
     }
 
     public void send() throws IOException {
@@ -64,6 +75,10 @@ public class UDPServer {
         }
     }
 
+    public static Set<String> getRemoteIps() {
+        return remoteIps;
+    }
+
     private String getIPAddress() {
         try {
             String ip = "";
@@ -76,16 +91,17 @@ public class UDPServer {
                 Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
                     InetAddress inetAddress = inetAddresses.nextElement();
-                    if (inetAddress instanceof Inet4Address) {
+                    if (inetAddress instanceof Inet4Address && inetAddress.isSiteLocalAddress()) {
                         ip = inetAddress.getHostAddress();
+                        System.out.println("IP: " + ip);
+                        return ip;
                     }
                 }
             }
-            System.out.println("IP: " + ip);
-            return ip;
         } catch (SocketException e) {
             e.printStackTrace();
         }
         return "";
     }
+
 }

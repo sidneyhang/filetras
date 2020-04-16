@@ -18,7 +18,7 @@ public class App {
         udpClient.start();
 
         JFrame jf = new JFrame("测试窗口");
-        jf.setSize(500, 500);
+        jf.setSize(380, 250);
         jf.setLocationRelativeTo(null);
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -50,9 +50,30 @@ public class App {
         });
         panel.add(sendBtn);
 
+        JButton refreshBtn = new JButton("刷新");
+        refreshBtn.addActionListener((event) -> {
+            String remoteIps = UDPServer.getRemoteIps().toString();
+            textArea.append(remoteIps);
+            System.out.println(remoteIps);
+        });
+        panel.add(refreshBtn);
+
         SpringLayout.Constraints openBtnCons = layout.getConstraints(openBtn);
 
+        openBtnCons.setX(Spring.constant(10));
+        openBtnCons.setY(Spring.constant(10));
 
+        SpringLayout.Constraints sendBtnCons = layout.getConstraints(sendBtn);
+        sendBtnCons.setX(Spring.sum(openBtnCons.getConstraint(SpringLayout.EAST), Spring.constant(10)));
+        sendBtnCons.setY(Spring.constant(10));
+
+        SpringLayout.Constraints refreshBtnCons = layout.getConstraints(refreshBtn);
+        refreshBtnCons.setX(Spring.sum(sendBtnCons.getConstraint(SpringLayout.EAST), Spring.constant(10)));
+        refreshBtnCons.setY(Spring.constant(10));
+
+        SpringLayout.Constraints txtCons = layout.getConstraints(textArea);
+        txtCons.setX(Spring.constant(10));
+        txtCons.setY(Spring.sum(openBtnCons.getConstraint(SpringLayout.BASELINE), Spring.constant(20)));
 
         jf.setContentPane(panel);
         jf.setVisible(true);
